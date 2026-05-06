@@ -45,7 +45,6 @@
 ## Self-Hosting
 * [Docker Compose](self-hosting/docker.md)
 * [Kubernetes](self-hosting/kubernetes.md)
-* [Environment Variables](self-hosting/environment.md)
 
 ## Security
 * [Overview](security/overview.md)
@@ -56,8 +55,6 @@
 * [Encryption at Rest](security/encryption.md)
 
 ## API Reference
-* [REST API](api-reference/rest.md)
-* [gRPC API](api-reference/grpc.md)
 * [Error Codes](api-reference/errors.md)
 
 ## Contributing
