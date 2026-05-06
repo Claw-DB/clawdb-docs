@@ -39,7 +39,7 @@ That single command detects your environment, selects the right backend, starts 
     </tr>
     <tr>
       <td><strong>🔌 Integrations</strong></td>
-      <td>Claude, LangChain, OpenAI, Vercel AI</td>
+      <td>OpenClaw, Claude, LangChain, OpenAI, Vercel AI</td>
       <td><a href="integrations/mcp.md">integrations/mcp.md</a></td>
     </tr>
     <tr>
