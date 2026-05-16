@@ -8,196 +8,171 @@
 ## Installation
 
 ```bash
-# npx (no install needed)
-npx clawdb@latest <command>
+# Run directly without installing
+npx @clawdb/cli <command>
 
-# Global install
+# Or install globally
 npm install -g @clawdb/cli
-
-# Homebrew
-brew install clawdb
-
-# Cargo
-cargo install clawdb-cli
 ```
 
 ---
 
-## Global flags
-
-All commands accept these global flags:
-
-| Flag | Description |
-|---|---|
-| `--base-url <url>` | Server URL. Env: `CLAWDB_BASE_URL` |
-| `--token <token>` | Session token. Env: `CLAWDB_SESSION_TOKEN` |
-| `--output json\|table\|tsv` | Output format. Defaults to `table`, or `json` when stdout is not a TTY |
-| `--quiet` | Suppress all output except errors |
-
----
-
-## Commands
-
-### `clawdb init`
-
-Bootstrap ClawDB in the current project.
+## Top-level commands
 
 ```bash
-clawdb init [--cloud] [--data-dir <path>]
-```
-
-- Detects project type (Node.js, Python, Rust, Go)
-- Downloads and starts the server
-- Writes `.clawdb.env`
-- Prints the correct SDK snippet for your project
-- Optionally installs MCP adapter for Claude Desktop
-
----
-
-### `clawdb start`
-
-Start the ClawDB server.
-
-```bash
-clawdb start [--port 50050] [--detach]
-```
-
-`--detach` writes the PID to `~/.clawdb/server.pid` and exits.
-
----
-
-### `clawdb stop`
-
-```bash
+clawdb init
+clawdb start
 clawdb stop
+clawdb status
+clawdb ready
+clawdb session ...
+clawdb memory ...
+clawdb branch ...
+clawdb sync ...
+clawdb reflect ...
+clawdb tx ...
+clawdb cloud ...
+clawdb mcp ...
+clawdb version
 ```
 
-Sends SIGTERM to the server process, waits for graceful shutdown.
+Use `--help` on any command to inspect its current options.
 
 ---
 
-### `clawdb status`
+## `clawdb init`
 
-Check health of all components.
+Bootstraps ClawDB for the current project and runs a smoke test.
 
 ```bash
+clawdb init [--cloud] [--data-dir <path>] [--json]
+```
+
+What it does:
+
+- Detects project type (Node, Python, Go, Rust)
+- Auto-provisions a local server (or cloud endpoint with `--cloud`)
+- Writes `.clawdb.env`
+- Prints SDK usage snippet
+- Offers optional MCP host install (Claude, Cursor, VS Code, Zed, OpenClaw, Google Antigravity)
+
+---
+
+## Local server commands
+
+```bash
+clawdb start [--port <n>] [--detach] [--json]
+clawdb stop [--json]
 clawdb status [--json]
-```
-
-```
-✓ clawdb-server    localhost:50050   healthy  (4ms)
-✓ claw-vector-svc  localhost:8081    ready    (12ms)
-✓ sync             cloud.clawdb.dev  online
-⚠ reflect          not configured
+clawdb ready [--json]
 ```
 
 ---
 
-### `clawdb memory`
+## `memory` commands
 
 ```bash
-# Search
-clawdb memory search "deployment policies" [--top-k 10] [--json]
-
-# Store
-clawdb memory remember "content" [--type fact] [--tags ops,deploy]
-
-# From file
-clawdb memory remember --file ./notes.txt
-
-# List
-clawdb memory list [--type fact] [--limit 50]
-
-# Delete
-clawdb memory delete <id>
+clawdb memory remember <content> [--json]
+clawdb memory remember-typed <content> [--type <t>] [--tags a,b] [--json]
+clawdb memory update <id> <content> [--json]
+clawdb memory search <query> [--top-k <n>] [--json]
+clawdb memory recall <ids...> [--json]
+clawdb memory list [--type <t>] [--limit <n>] [--json]
+clawdb memory delete <id> [--json]
 ```
 
 ---
 
-### `clawdb session`
+## `session` commands
 
 ```bash
-# Create
-clawdb session create --agent-id my-agent --role assistant --scopes memory:write,memory:read
-
-# Validate current token
-clawdb session whoami
-
-# Revoke
-clawdb session revoke <session-id>
+clawdb session create [--role <role>] [--scopes s1,s2] [--ttl <secs>] [--json]
+clawdb session validate [--json]
+clawdb session revoke <sessionId> [--json]
+clawdb session count [--json]
 ```
 
 ---
 
-### `clawdb branch`
+## `branch` commands
 
 ```bash
-clawdb branch fork <name> [--from <branch-id>]
-clawdb branch list [--status active|merged|discarded]
-clawdb branch merge <source-id> <target-id> [--strategy last-write|source-wins]
-clawdb branch diff <source-id> <target-id>
-clawdb branch discard <branch-id>
+clawdb branch fork <name> [--from <branchId>] [--json]
+clawdb branch list [--json]
+clawdb branch get <id> [--json]
+clawdb branch get-by-name <name> [--json]
+clawdb branch trunk [--json]
+clawdb branch diff <id> [--target <branchId>] [--json]
+clawdb branch merge <source> [--target <branchId>] [--strategy <s>] [--json]
+clawdb branch discard <id> [--json]
+clawdb branch archive <id> [--json]
 ```
 
 ---
 
-### `clawdb sync`
+## `sync` commands
 
 ```bash
-clawdb sync [--dry-run]
-```
-
-```
-↑ 42 pushed   ↓ 7 pulled   △ 0 conflicts   (312ms)
+clawdb sync run [--json]
+clawdb sync push [--json]
+clawdb sync pull [--json]
+clawdb sync reconcile [--json]
+clawdb sync status [--json]
 ```
 
 ---
 
-### `clawdb reflect`
+## `reflect` commands
 
 ```bash
-clawdb reflect [--job summarise|extract|decay|all] [--dry-run]
+clawdb reflect run [--watch] [--json]
+clawdb reflect jobs [--agent-id <id>] [--status <s>] [--limit <n>] [--offset <n>] [--json]
+clawdb reflect job <jobId> [--json]
+clawdb reflect facts <agentId> [--json]
+clawdb reflect preferences <agentId> [--json]
+clawdb reflect contradictions <agentId> [--json]
+clawdb reflect resolve <agentId> <contradictionId> [--strategy <s>] [--merged-value <json>] [--json]
 ```
-
-Shows a progress spinner. Prints stats on completion.
 
 ---
 
-### `clawdb mcp`
-
-Install ClawDB as an MCP server for AI editors.
+## `tx` commands
 
 ```bash
-# Install for specific editors
+clawdb tx begin [--json]
+clawdb tx remember <txId> <content> [--json]
+clawdb tx remember-typed <txId> <content> [--type <t>] [--tags a,b] [--json]
+clawdb tx commit <txId> [--json]
+clawdb tx rollback <txId> [--json]
+```
+
+---
+
+## `cloud` commands
+
+```bash
+clawdb cloud login [--json]
+clawdb cloud logout [--json]
+clawdb cloud status [--json]
+```
+
+---
+
+## `mcp` commands
+
+Install ClawDB MCP config into host/editor settings:
+
+```bash
 clawdb mcp install-claude
 clawdb mcp install-cursor
 clawdb mcp install-vscode
-clawdb mcp install-continue
 clawdb mcp install-zed
+clawdb mcp install-openclaw
+clawdb mcp install-google-antigravity
+```
 
-# Print config JSON without installing
+Print the generic config block:
+
+```bash
 clawdb mcp print-config --host claude
-```
-
----
-
-### `clawdb config`
-
-```bash
-clawdb config show              # show all config (redacts secrets)
-clawdb config get base_url      # get a single value
-clawdb config set base_url http://localhost:50050
-```
-
----
-
-### `clawdb completion`
-
-Generate shell completion scripts.
-
-```bash
-clawdb completion bash   >> ~/.bashrc
-clawdb completion zsh    >> ~/.zshrc
-clawdb completion fish   > ~/.config/fish/completions/clawdb.fish
-clawdb completion pwsh   >> $PROFILE
 ```

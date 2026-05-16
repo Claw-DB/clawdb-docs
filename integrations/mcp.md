@@ -1,6 +1,23 @@
 # MCP — Claude Desktop & AI Editors
 
-The `@clawdb/mcp-adapter` exposes ClawDB as an MCP (Model Context Protocol) server, giving any MCP-compatible AI tool persistent memory with zero configuration.
+ClawDB ships an MCP server via `@clawdb/mcp-adapter` so MCP-compatible hosts can access persistent memory, branches, sync, and reflection tools.
+
+---
+
+## Recommended install path
+
+Use the ClawDB CLI to install host-specific MCP config:
+
+```bash
+clawdb mcp install-claude
+clawdb mcp install-cursor
+clawdb mcp install-vscode
+clawdb mcp install-zed
+clawdb mcp install-openclaw
+clawdb mcp install-google-antigravity
+```
+
+The CLI writes host-correct config formats and paths automatically.
 
 ---
 
@@ -8,36 +25,24 @@ The `@clawdb/mcp-adapter` exposes ClawDB as an MCP (Model Context Protocol) serv
 
 | Host | Install command |
 |---|---|
-| Claude Desktop | `npx @clawdb/mcp-adapter --install-claude` |
-| Cursor | `npx @clawdb/mcp-adapter --install-cursor` |
-| VS Code + Copilot | `npx @clawdb/mcp-adapter --install-vscode` |
-| Continue.dev | `npx @clawdb/mcp-adapter --install-continue` |
-| Zed | `npx @clawdb/mcp-adapter --install-zed` |
+| Claude Desktop | `clawdb mcp install-claude` |
+| Cursor | `clawdb mcp install-cursor` |
+| VS Code + Copilot | `clawdb mcp install-vscode` |
+| Zed | `clawdb mcp install-zed` |
+| OpenClaw | `clawdb mcp install-openclaw` |
+| Google Antigravity | `clawdb mcp install-google-antigravity` |
 
 ---
 
-## Claude Desktop
+## Manual config block
 
-### Automatic install
-
-```bash
-npx @clawdb/mcp-adapter --install-claude
-```
-
-This writes the correct JSON block to `claude_desktop_config.json` automatically. Restart Claude Desktop to activate.
-
-### Manual install
-
-If you prefer to edit the config yourself, run:
+If you need to inspect the base config block:
 
 ```bash
-npx @clawdb/mcp-adapter --print-config --host claude
+clawdb mcp print-config --host claude
 ```
 
-Then add the output to your `claude_desktop_config.json`:
-
-**macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`  
-**Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+Example output:
 
 ```json
 {
@@ -46,97 +51,47 @@ Then add the output to your `claude_desktop_config.json`:
       "command": "npx",
       "args": ["-y", "@clawdb/mcp-adapter@latest"],
       "env": {
-        "CLAWDB_AGENT_ID": "claude-desktop",
-        "CLAWDB_API_KEY": "sk_live_your_key_here"
+        "CLAWDB_ENDPOINT": "http://localhost:50050",
+        "CLAWDB_AGENT_ID": "claude"
       }
     }
   }
 }
 ```
 
-{% hint style="info" %}
-If you have ClawDB running locally (via `clawdb start`), you can omit `CLAWDB_API_KEY` and set `CLAWDB_URL=http://localhost:50050` instead.
-{% endhint %}
+Note: some hosts use different top-level keys (`servers` in VS Code, `context_servers` in Zed). Prefer `clawdb mcp install-*` unless you are customizing manually.
+
+---
+
+## Host restart requirement
+
+After install, fully restart your host/editor so the new MCP server config is loaded.
 
 ---
 
 ## Available MCP tools
 
-Once connected, Claude can use these tools:
+Once connected, your host can call tools such as:
 
-| Tool | Description |
-|---|---|
-| `clawdb_remember` | Store information that should persist across conversations |
-| `clawdb_search` | Search memory by meaning to recall relevant context |
-| `clawdb_recall` | Retrieve specific memories by ID |
-| `clawdb_branch_fork` | Fork memory state for experimentation |
-| `clawdb_branch_merge` | Merge an experiment back into main memory |
-| `clawdb_status` | Check ClawDB connection and health |
-| `clawdb_remember_bulk` | Store up to 100 memories in one call |
+- `clawdb_remember`
+- `clawdb_remember_bulk`
+- `clawdb_search`
+- `clawdb_recall`
+- `clawdb_branch_fork`
+- `clawdb_branch_merge`
+- `clawdb_sync`
+- `clawdb_reflect`
 
----
-
-## MCP Resources
-
-ClawDB also exposes MCP Resources (readable content):
-
-- `clawdb://memory/{id}` — a specific memory record
-- `clawdb://recent` — the 20 most recent memories
+The exact tool list is exposed by the MCP server at runtime.
 
 ---
 
-## MCP Prompts
+## Running the adapter directly
 
-- `clawdb_load_context` — searches memory for the current conversation topic and returns results formatted as system context
-
----
-
-## Other editors
-
-### Cursor
+You can launch the stdio MCP server directly:
 
 ```bash
-npx @clawdb/mcp-adapter --install-cursor
+npx -y @clawdb/mcp-adapter@latest
 ```
 
-Config written to `~/.cursor/mcp.json`.
-
-### VS Code
-
-```bash
-npx @clawdb/mcp-adapter --install-vscode
-```
-
-Config written to `.vscode/mcp.json` in the current project.
-
-### Continue.dev
-
-```bash
-npx @clawdb/mcp-adapter --install-continue
-```
-
-Config written to `~/.continue/config.json`.
-
-### Zed
-
-```bash
-npx @clawdb/mcp-adapter --install-zed
-```
-
-Config written to `~/.config/zed/settings.json`.
-
----
-
-## Programmatic usage
-
-```typescript
-// The adapter can also be started programmatically
-import { createMCPServer } from '@clawdb/mcp-adapter'
-
-const server = await createMCPServer({
-  agentId: 'my-agent',
-  endpoint: 'http://localhost:50050',
-})
-
-server.start()  // starts the stdio MCP server
-```
+For local mode, ensure `CLAWDB_ENDPOINT=http://localhost:50050` is set (or use `.clawdb.env` from `clawdb init`).
